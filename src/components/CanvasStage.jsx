@@ -370,6 +370,7 @@ export default function CanvasStage({
           width: `${CANVAS_WIDTH}px`,
           height: `${CANVAS_HEIGHT}px`,
           touchAction: 'none',
+           cursor: canvasCursor, 
           position: 'relative',
         }}
         onPointerDown={handlePointerDown}
