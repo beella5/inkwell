@@ -20,6 +20,7 @@ export default function CanvasStage({
   const bgCanvasRef = useRef(null)
   const overlayCanvasRef = useRef(null)
   const layerCanvasesRef = useRef({})
+  const cursorRef = useRef(null) 
 
   const isDrawingRef = useRef(false)
   const currentStrokeRef = useRef(null)
@@ -373,6 +374,7 @@ export default function CanvasStage({
               width: `${CANVAS_WIDTH}px`,
               height: `${CANVAS_HEIGHT}px`,
               display: layer.visible !== false ? 'block' : 'none',
+              position: 'relative',   
             }}
           />
         ))}
@@ -387,6 +389,19 @@ export default function CanvasStage({
             height: `${CANVAS_HEIGHT}px`,
           }}
         />
+        {/* Brush cursor preview (DOM element, never part of the drawing) */}
+<div
+  ref={cursorRef}
+  style={{
+    position: 'absolute',
+    pointerEvents: 'none',
+    display: 'none',
+    zIndex: layers.length + 3,
+    top: 0,
+    left: 0,
+    transform: 'translate(-50%, -50%)',
+  }}
+/>
       </div>
     </main>
   )
