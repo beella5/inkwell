@@ -20,7 +20,7 @@ export default function CanvasStage({
   const bgCanvasRef = useRef(null)
   const overlayCanvasRef = useRef(null)
   const layerCanvasesRef = useRef({})
-  const cursorRef = useRef(null) 
+  const cursorRef = useRef(null)
 
   const isDrawingRef = useRef(false)
   const currentStrokeRef = useRef(null)
@@ -238,6 +238,16 @@ export default function CanvasStage({
 
   // Pointer Move
   const handlePointerMove = (e) => {
+    // ---- brush cursor preview (always runs) ----
+    const rect = containerRef.current?.getBoundingClientRect()
+    const cursorEl = cursorRef.current
+    if (rect && cursorEl) {
+      cursorEl.style.left = `${e.clientX - rect.left}px`
+      cursorEl.style.top = `${e.clientY - rect.top}px`
+      cursorEl.style.display = 'block'
+    }
+    // ---- end cursor preview ----
+
     if (!isDrawingRef.current || !currentStrokeRef.current) return
     const pt = getCanvasPoint(e)
     const stroke = currentStrokeRef.current
@@ -286,6 +296,12 @@ export default function CanvasStage({
         renderStroke(ctx, stroke)
       }
     }
+  }
+
+  // Pointer Leave — hide cursor preview unless we're mid-stroke
+  const handlePointerLeave = () => {
+    if (isDrawingRef.current) return
+    if (cursorRef.current) cursorRef.current.style.display = 'none'
   }
 
   // Pointer Up
@@ -344,11 +360,13 @@ export default function CanvasStage({
           width: `${CANVAS_WIDTH}px`,
           height: `${CANVAS_HEIGHT}px`,
           touchAction: 'none',
+          position: 'relative',
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
+        onPointerLeave={handlePointerLeave}
       >
         {/* Background Canvas (solid white + blank/dotted/graph) */}
         <canvas
@@ -374,7 +392,7 @@ export default function CanvasStage({
               width: `${CANVAS_WIDTH}px`,
               height: `${CANVAS_HEIGHT}px`,
               display: layer.visible !== false ? 'block' : 'none',
-              position: 'relative',   
+              position: 'relative',
             }}
           />
         ))}
@@ -389,19 +407,25 @@ export default function CanvasStage({
             height: `${CANVAS_HEIGHT}px`,
           }}
         />
+
         {/* Brush cursor preview (DOM element, never part of the drawing) */}
-<div
-  ref={cursorRef}
-  style={{
-    position: 'absolute',
-    pointerEvents: 'none',
-    display: 'none',
-    zIndex: layers.length + 3,
-    top: 0,
-    left: 0,
-    transform: 'translate(-50%, -50%)',
-  }}
-/>
+        <div
+          ref={cursorRef}
+          style={{
+            position: 'absolute',
+            pointerEvents: 'none',
+            display: 'none',
+            zIndex: layers.length + 3,
+            top: 0,
+            left: 0,
+            transform: 'translate(-50%, -50%)',
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
+            background: 'rgba(37, 35, 41, 0.5)',
+            border: '1px solid #252329',
+          }}
+        />
       </div>
     </main>
   )
