@@ -1,7 +1,11 @@
 import React, { useRef, useEffect, useCallback } from 'react'
 import { renderStroke } from '../canvas/renderStroke'
 import { drawBackground } from '../canvas/drawBackground'
-
+import {
+  penCursorSvg,
+  ERASER_CURSOR_SVG,
+  toCursorValue,
+} from '../utils/cursors'
 export const CANVAS_WIDTH = 1000
 export const CANVAS_HEIGHT = 700
 
@@ -25,6 +29,12 @@ export default function CanvasStage({
   const isDrawingRef = useRef(false)
   const currentStrokeRef = useRef(null)
   const pointerIdRef = useRef(null)
+    const canvasCursor = useMemo(() => {
+    if (isEyedropperActive) return 'crosshair'
+    if (tool === 'pen') return toCursorValue(penCursorSvg(color), 2, 30)
+    if (tool === 'eraser') return toCursorValue(ERASER_CURSOR_SVG, 16, 16, 'cell')
+    return 'crosshair'
+  }, [tool, color, isEyedropperActive])
 
   // 1. Render Background & Pattern
   useEffect(() => {
