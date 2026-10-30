@@ -1,0 +1,55 @@
+:root {
+  /* Colors */
+  --color-bg: #f7f4ef;
+  --color-canvas: #ffffff;
+  --color-accent: #722f43;
+  --color-accent-hover: #5b2435;
+  --color-accent-subtle: rgba(114, 47, 67, 0.08);
+  --color-accent-focus: rgba(114, 47, 67, 0.2);
+  --color-text: #252329;
+  --color-text-muted: #6e6875;
+  --color-surface-secondary: #eae4dc;
+  --color-surface-hover: #e2dbd2;
+  --color-surface-card: #ffffff;
+  --color-border: #ddd6ce;
+  --color-border-subtle: #e8e2da;
+  --color-danger: #ba1a1a;
+  --color-danger-subtle: #ffdad6;
+  --color-success: #2a6a4e;
+
+  /* Typography */
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans:
+    'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
+
+  /* Border Radii */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-subtle: 0 1px 3px rgba(37, 35, 41, 0.06);
+  --shadow-paper:
+    0 1px 3px rgba(37, 35, 41, 0.06), 0 4px 16px -2px rgba(37, 35, 41, 0.05);
+  --shadow-popover:
+    0 4px 14px rgba(37, 35, 41, 0.08), 0 1px 3px rgba(37, 35, 41, 0.04);
+  --shadow-modal:
+    0 8px 24px -4px rgba(37, 35, 41, 0.12),
+    0 2px 6px -1px rgba(37, 35, 41, 0.06);
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+
+  /* Layout */
+  --topbar-height: 64px;
+  --toolbar-width: 80px;
+  --layerpanel-width: 280px;
+}
