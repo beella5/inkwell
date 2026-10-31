@@ -1,8 +1,6 @@
+
 import { useReducer, useCallback } from 'react'
 
-/**
- * Pure reducer handling command history (past, present, future).
- */
 export function historyReducer(state, action) {
   if (!action) return state
 
@@ -29,35 +27,43 @@ export function historyReducer(state, action) {
       }
     }
 
-    case 'UNDO': {
-      if (!state.past || state.past.length === 0) {
-        return state
-      }
-      const previous = state.past[state.past.length - 1]
-      const newPast = state.past.slice(0, state.past.length - 1)
+    case 'REPLACE_PRESENT':
       return {
-        past: newPast,
-        present: previous,
+        ...state,
+        present: action.payload,
+      }
+
+    case 'COMMIT_FROM':
+      return {
+        past: [...state.past, action.previousPresent],
+        present: action.payload,
+        future: [],
+      }
+
+    case 'UNDO': {
+      if (!state.past.length) return state
+
+      return {
+        past: state.past.slice(0, -1),
+        present: state.past[state.past.length - 1],
         future: [state.present, ...state.future],
       }
     }
 
     case 'REDO': {
-      if (!state.future || state.future.length === 0) {
-        return state
-      }
-      const next = state.future[0]
-      const newFuture = state.future.slice(1)
+      if (!state.future.length) return state
+
       return {
         past: [...state.past, state.present],
-        present: next,
-        future: newFuture,
+        present: state.future[0],
+        future: state.future.slice(1),
       }
     }
 
     case 'RESET': {
       const resetValue =
         action.payload !== undefined ? action.payload : action.present
+
       return {
         past: [],
         present: resetValue,
@@ -70,23 +76,18 @@ export function historyReducer(state, action) {
   }
 }
 
-/**
- * Factory function for creating a history reducer (used for testing or custom initial states).
- */
 export function createHistoryReducer(initialPresent = null) {
   const defaultInitial = {
     past: [],
     present: initialPresent,
     future: [],
   }
+
   return function (state = defaultInitial, action) {
     return historyReducer(state, action)
   }
 }
 
-/**
- * Custom React hook for managing undo/redo history.
- */
 export default function useHistory(initialPresent) {
   const [history, dispatch] = useReducer(historyReducer, {
     past: [],
@@ -109,6 +110,18 @@ export default function useHistory(initialPresent) {
     dispatch({ type: 'SET', payload: newPresent })
   }, [])
 
+  const replacePresent = useCallback((newPresent) => {
+    dispatch({ type: 'REPLACE_PRESENT', payload: newPresent })
+  }, [])
+
+  const commitFrom = useCallback((previousPresent, newPresent) => {
+    dispatch({
+      type: 'COMMIT_FROM',
+      previousPresent,
+      payload: newPresent,
+    })
+  }, [])
+
   const reset = useCallback((newPresent) => {
     dispatch({ type: 'RESET', payload: newPresent })
   }, [])
@@ -124,8 +137,11 @@ export default function useHistory(initialPresent) {
     redo,
     set: setPresent,
     setPresent,
+    replacePresent,
+    commitFrom,
     reset,
     dispatch,
   }
 }
+
 
