@@ -15,9 +15,7 @@ export const ERASER_CURSOR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width=
   <line x1="21" y1="11" x2="11" y2="21" stroke="#1f1d22" stroke-width="1.5" stroke-linecap="round"/>
 </svg>`
 
-let version = 0
 export function toCursorValue(svg, hotspotX, hotspotY, fallback = 'crosshair') {
-  version += 1
   const data = `data:image/svg+xml,${encodeURIComponent(svg)}`
   return `url("${data}") ${hotspotX} ${hotspotY}, ${fallback}`
 }
