@@ -210,11 +210,16 @@ export default function CanvasStage({
   tool === 'highlighter'
 ) {
       const stroke = {
-        tool,
-        color: tool === 'eraser' ? 'rgba(0,0,0,1)' : color,
-        size,
-        points: [pt],
-      }
+  tool,
+  color:
+    tool === 'eraser'
+      ? 'rgba(0,0,0,1)'
+      : tool === 'pencil'
+        ? '#252329'
+        : color,
+  size,
+  points: [pt],
+}
       currentStrokeRef.current = stroke
 
       // Render first point on active layer canvas
