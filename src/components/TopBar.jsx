@@ -9,6 +9,8 @@ export default function TopBar({
   onExport,
   onClear,
   onOpenShortcuts,
+  theme,
+  onToggleTheme,
 }) {
   const getStatusText = () => {
     switch (saveStatus) {
@@ -42,6 +44,46 @@ export default function TopBar({
       </div>
 
       <div className="topbar-right">
+        <button
+  className="btn-icon"
+  title={`Current theme: ${theme}. Click to change theme.`}
+  aria-label={`Current theme: ${theme}. Click to change theme.`}
+  onClick={onToggleTheme}
+>
+  {theme === 'light' ? (
+    // Moon icon
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z" />
+    </svg>
+  ) : theme === 'dark' ? (
+    // Sun icon
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" />
+    </svg>
+  ) : (
+    // Pink theme icon
+    <span style={{ fontSize: '18px' }}>🌸</span>
+  )}
+</button>
         <button
           className="btn-icon"
           title="Undo (Ctrl+Z)"
