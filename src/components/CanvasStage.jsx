@@ -24,7 +24,6 @@ export default function CanvasStage({
   const bgCanvasRef = useRef(null)
   const overlayCanvasRef = useRef(null)
   const layerCanvasesRef = useRef({})
-  const cursorRef = useRef(null)
 
   const isDrawingRef = useRef(false)
   const currentStrokeRef = useRef(null)
@@ -249,13 +248,7 @@ export default function CanvasStage({
   // Pointer Move
   const handlePointerMove = (e) => {
     // ---- brush cursor preview (always runs) ----
-    const rect = containerRef.current?.getBoundingClientRect()
-    const cursorEl = cursorRef.current
-    if (rect && cursorEl) {
-      cursorEl.style.left = `${e.clientX - rect.left}px`
-      cursorEl.style.top = `${e.clientY - rect.top}px`
-      cursorEl.style.display = 'block'
-    }
+   
     // ---- end cursor preview ----
 
     if (!isDrawingRef.current || !currentStrokeRef.current) return
@@ -309,10 +302,6 @@ export default function CanvasStage({
   }
 
   // Pointer Leave — hide cursor preview unless we're mid-stroke
-  const handlePointerLeave = () => {
-    if (isDrawingRef.current) return
-    if (cursorRef.current) cursorRef.current.style.display = 'none'
-  }
 
   // Pointer Up
   const handlePointerUp = (e) => {
