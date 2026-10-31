@@ -17,6 +17,8 @@ export default function CanvasStage({
   onFinishEyedropper,
   onAddStroke,
   onUpdateStroke,
+  onCommitStrokeUpdate,
+  onDeleteStroke,
 }) {
   const containerRef = useRef(null)
   const bgCanvasRef = useRef(null)
@@ -27,9 +29,14 @@ export default function CanvasStage({
   const currentStrokeRef = useRef(null)
   const pointerIdRef = useRef(null)
   const [selectedStroke, setSelectedStroke] = useState(null)
-  const [isMoving, setIsMoving] = useState(false)
+const [isMoving, setIsMoving] = useState(false)
+const [isResizing, setIsResizing] = useState(false)
+
 const moveStartRef = useRef(null)
 const originalStrokeRef = useRef(null)
+const originalLayersRef = useRef(null)
+const previewStrokeRef = useRef(null)
+const resizeHandleRef = useRef(null)
   // Pen / eraser cursor derived from the active tool
   const canvasCursor = useMemo(() => {
     if (isEyedropperActive) return 'crosshair'
@@ -202,39 +209,68 @@ const originalStrokeRef = useRef(null)
       y: Math.round(e.clientY - rect.top),
     }
   }
+
+  // Get the bounding box of a drawing
+  const getStrokeBounds = (stroke) => {
+    let xs = []
+    let ys = []
+
+    if (stroke.points?.length) {
+      xs = stroke.points.map((p) => p.x)
+      ys = stroke.points.map((p) => p.y)
+    } else {
+      ;['x', 'x1', 'x2', 'startX', 'cx'].forEach((key) => {
+        if (typeof stroke[key] === 'number') xs.push(stroke[key])
+      })
+
+      ;['y', 'y1', 'y2', 'startY', 'cy'].forEach((key) => {
+        if (typeof stroke[key] === 'number') ys.push(stroke[key])
+      })
+
+      if (typeof stroke.width === 'number' && typeof stroke.x === 'number') {
+        xs.push(stroke.x + stroke.width)
+      }
+
+      if (typeof stroke.height === 'number' && typeof stroke.y === 'number') {
+        ys.push(stroke.y + stroke.height)
+      }
+
+      if (typeof stroke.rx === 'number' && typeof stroke.cx === 'number') {
+        xs.push(stroke.cx - stroke.rx, stroke.cx + stroke.rx)
+      }
+
+      if (typeof stroke.ry === 'number' && typeof stroke.cy === 'number') {
+        ys.push(stroke.cy - stroke.ry, stroke.cy + stroke.ry)
+      }
+    }
+
+    if (!xs.length || !ys.length) return null
+
+    return {
+      minX: Math.min(...xs),
+      minY: Math.min(...ys),
+      maxX: Math.max(...xs),
+      maxY: Math.max(...ys),
+    }
+  }
+
   // Find the topmost drawing under the pointer
   const findStrokeAtPoint = (point) => {
     const tolerance = 8
 
     for (let i = layers.length - 1; i >= 0; i--) {
       const layer = layers[i]
-
       if (layer.visible === false || !layer.strokes) continue
 
       for (let j = layer.strokes.length - 1; j >= 0; j--) {
-        const stroke = layer.strokes[j]
-        let minX, minY, maxX, maxY
-
-        if (stroke.points && stroke.points.length > 0) {
-          const xs = stroke.points.map((p) => p.x)
-          const ys = stroke.points.map((p) => p.y)
-
-          minX = Math.min(...xs)
-          minY = Math.min(...ys)
-          maxX = Math.max(...xs)
-          maxY = Math.max(...ys)
-        } else {
-          minX = Math.min(stroke.x1 ?? stroke.x ?? 0, stroke.x2 ?? stroke.x ?? 0)
-          minY = Math.min(stroke.y1 ?? stroke.y ?? 0, stroke.y2 ?? stroke.y ?? 0)
-          maxX = Math.max(stroke.x1 ?? stroke.x ?? 0, stroke.x2 ?? stroke.x ?? 0)
-          maxY = Math.max(stroke.y1 ?? stroke.y ?? 0, stroke.y2 ?? stroke.y ?? 0)
-        }
+        const bounds = getStrokeBounds(layer.strokes[j])
+        if (!bounds) continue
 
         if (
-          point.x >= minX - tolerance &&
-          point.x <= maxX + tolerance &&
-          point.y >= minY - tolerance &&
-          point.y <= maxY + tolerance
+          point.x >= bounds.minX - tolerance &&
+          point.x <= bounds.maxX + tolerance &&
+          point.y >= bounds.minY - tolerance &&
+          point.y <= bounds.maxY + tolerance
         ) {
           return { layerId: layer.id, strokeIndex: j }
         }
@@ -242,32 +278,18 @@ const originalStrokeRef = useRef(null)
     }
 
     return null
-}
-    // Draw selection outline around the selected stroke
+  }
+
+  // Draw the selection frame and its four resize handles
   const drawSelectionOutline = () => {
     if (!selectedStroke) return
 
     const layer = layers.find((l) => l.id === selectedStroke.layerId)
     const stroke = layer?.strokes?.[selectedStroke.strokeIndex]
-
     if (!stroke) return
 
-    let minX, minY, maxX, maxY
-
-    if (stroke.points?.length) {
-      const xs = stroke.points.map((p) => p.x)
-      const ys = stroke.points.map((p) => p.y)
-
-      minX = Math.min(...xs)
-      minY = Math.min(...ys)
-      maxX = Math.max(...xs)
-      maxY = Math.max(...ys)
-    } else {
-      minX = Math.min(stroke.x1 ?? stroke.x ?? 0, stroke.x2 ?? stroke.x ?? 0)
-      minY = Math.min(stroke.y1 ?? stroke.y ?? 0, stroke.y2 ?? stroke.y ?? 0)
-      maxX = Math.max(stroke.x1 ?? stroke.x ?? 0, stroke.x2 ?? stroke.x ?? 0)
-      maxY = Math.max(stroke.y1 ?? stroke.y ?? 0, stroke.y2 ?? stroke.y ?? 0)
-    }
+    const bounds = getStrokeBounds(stroke)
+    if (!bounds) return
 
     const overlay = overlayCanvasRef.current
     if (!overlay) return
@@ -275,117 +297,222 @@ const originalStrokeRef = useRef(null)
     const ctx = overlay.getContext('2d')
     if (!ctx) return
 
+    const left = bounds.minX - 5
+    const top = bounds.minY - 5
+    const width = bounds.maxX - bounds.minX + 10
+    const height = bounds.maxY - bounds.minY + 10
+
     ctx.save()
     ctx.setLineDash([6, 4])
     ctx.strokeStyle = '#4A90E2'
     ctx.lineWidth = 1.5
-    const left = minX - 5
-const top = minY - 5
-const width = maxX - minX + 10
-const height = maxY - minY + 10
+    ctx.strokeRect(left, top, width, height)
 
-// Dashed selection frame
-ctx.strokeRect(left, top, width, height)
+    ctx.setLineDash([])
+    ctx.fillStyle = '#ffffff'
+    ctx.strokeStyle = '#4A90E2'
 
-// Four corner handles
-ctx.setLineDash([])
-ctx.fillStyle = '#ffffff'
-ctx.strokeStyle = '#4A90E2'
-ctx.lineWidth = 1.5
+    const corners = [
+      { id: 'nw', x: left, y: top },
+      { id: 'ne', x: left + width, y: top },
+      { id: 'sw', x: left, y: top + height },
+      { id: 'se', x: left + width, y: top + height },
+    ]
 
-const handleSize = 8
+    corners.forEach(({ x, y }) => {
+      ctx.fillRect(x - 4, y - 4, 8, 8)
+      ctx.strokeRect(x - 4, y - 4, 8, 8)
+    })
 
-const corners = [
-  [left, top],
-  [left + width, top],
-  [left, top + height],
-  [left + width, top + height],
-]
-
-corners.forEach(([x, y]) => {
-  ctx.fillRect(
-    x - handleSize / 2,
-    y - handleSize / 2,
-    handleSize,
-    handleSize
-  )
-  ctx.strokeRect(
-    x - handleSize / 2,
-    y - handleSize / 2,
-    handleSize,
-    handleSize
-  )
-})
-
-ctx.restore()
+    ctx.restore()
   }
+
   // Update selection outline whenever the selection or layers change
   useEffect(() => {
     clearOverlay()
     drawSelectionOutline()
   }, [selectedStroke, layers, clearOverlay])
   // Pointer Down
+  
+// Find which resize handle the pointer is touching
+const getResizeHandle = (point, stroke) => {
+  const bounds = getStrokeBounds(stroke)
+  if (!bounds) return null
+
+  const corners = [
+    { id: 'nw', x: bounds.minX - 5, y: bounds.minY - 5 },
+    { id: 'ne', x: bounds.maxX + 5, y: bounds.minY - 5 },
+    { id: 'sw', x: bounds.minX - 5, y: bounds.maxY + 5 },
+    { id: 'se', x: bounds.maxX + 5, y: bounds.maxY + 5 },
+  ]
+
+  const handle = corners.find(
+    (corner) =>
+      Math.abs(point.x - corner.x) <= 9 &&
+      Math.abs(point.y - corner.y) <= 9
+  )
+
+  return handle?.id || null
+}
+
+// Move a drawing
+const moveStroke = (original, dx, dy) => {
+  const moved = { ...original }
+
+  if (original.points) {
+    moved.points = original.points.map((p) => ({
+      ...p,
+      x: p.x + dx,
+      y: p.y + dy,
+    }))
+  }
+
+  ;['x', 'x1', 'x2', 'startX', 'cx'].forEach((key) => {
+    if (typeof original[key] === 'number') {
+      moved[key] = original[key] + dx
+    }
+  })
+
+  ;['y', 'y1', 'y2', 'startY', 'cy'].forEach((key) => {
+    if (typeof original[key] === 'number') {
+      moved[key] = original[key] + dy
+    }
+  })
+
+  return moved
+}
+
+// Resize a drawing from one of its corners
+const resizeStroke = (original, handle, point) => {
+  const bounds = getStrokeBounds(original)
+  if (!bounds) return original
+
+  let { minX, minY, maxX, maxY } = bounds
+
+  if (handle.includes('w')) minX = point.x
+  if (handle.includes('e')) maxX = point.x
+  if (handle.includes('n')) minY = point.y
+  if (handle.includes('s')) maxY = point.y
+
+  const oldWidth = bounds.maxX - bounds.minX
+  const oldHeight = bounds.maxY - bounds.minY
+  const newWidth = maxX - minX
+  const newHeight = maxY - minY
+
+  if (newWidth < 5 || newHeight < 5) return original
+
+  const scaleX = newWidth / (oldWidth || 1)
+  const scaleY = newHeight / (oldHeight || 1)
+
+  const resized = { ...original }
+
+  const transformX = (x) => minX + (x - bounds.minX) * scaleX
+  const transformY = (y) => minY + (y - bounds.minY) * scaleY
+
+  if (original.points) {
+    resized.points = original.points.map((p) => ({
+      ...p,
+      x: transformX(p.x),
+      y: transformY(p.y),
+    }))
+  }
+
+  ;['x', 'x1', 'x2', 'startX', 'cx'].forEach((key) => {
+    if (typeof original[key] === 'number') {
+      resized[key] = transformX(original[key])
+    }
+  })
+
+  ;['y', 'y1', 'y2', 'startY', 'cy'].forEach((key) => {
+    if (typeof original[key] === 'number') {
+      resized[key] = transformY(original[key])
+    }
+  })
+
+  if (typeof original.width === 'number') {
+    resized.width = original.width * scaleX
+  }
+  if (typeof original.height === 'number') {
+    resized.height = original.height * scaleY
+  }
+  if (typeof original.rx === 'number') {
+    resized.rx = original.rx * scaleX
+  }
+  if (typeof original.ry === 'number') {
+    resized.ry = original.ry * scaleY
+  }
+
+  return resized
+}
+
   const handlePointerDown = (e) => {
+     if (isEyedropperActive) {
+      sampleColorAt(e.clientX, e.clientY)
+      return
+    }
         // Selection tool
-   // Selection tool
 if (tool === 'select') {
   if (e.button !== 0) return
 
   const pt = getCanvasPoint(e)
 
-  // If the current selection is clicked, start moving it
+  // Check whether we already have a selected drawing
   if (selectedStroke) {
     const layer = layers.find((l) => l.id === selectedStroke.layerId)
     const stroke = layer?.strokes?.[selectedStroke.strokeIndex]
 
     if (stroke) {
-      const points = stroke.points || []
+      // First check whether a resize handle was clicked
+      const handle = getResizeHandle(pt, stroke)
 
-      const xs = points.length
-        ? points.map((p) => p.x)
-        : [stroke.x1 ?? stroke.x ?? 0, stroke.x2 ?? stroke.x ?? 0]
+      if (handle) {
+        originalStrokeRef.current = JSON.parse(JSON.stringify(stroke))
+        originalLayersRef.current = layers
+        previewStrokeRef.current = stroke
+        resizeHandleRef.current = handle
 
-      const ys = points.length
-        ? points.map((p) => p.y)
-        : [stroke.y1 ?? stroke.y ?? 0, stroke.y2 ?? stroke.y ?? 0]
+        setIsResizing(true)
+        pointerIdRef.current = e.pointerId
 
-      const minX = Math.min(...xs) - 5
-      const maxX = Math.max(...xs) + 5
-      const minY = Math.min(...ys) - 5
-      const maxY = Math.max(...ys) + 5
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId)
+        } catch {}
+
+        return
+      }
+
+      // Otherwise check whether the drawing itself was clicked
+      const bounds = getStrokeBounds(stroke)
 
       if (
-        pt.x >= minX &&
-        pt.x <= maxX &&
-        pt.y >= minY &&
-        pt.y <= maxY
+        bounds &&
+        pt.x >= bounds.minX - 5 &&
+        pt.x <= bounds.maxX + 5 &&
+        pt.y >= bounds.minY - 5 &&
+        pt.y <= bounds.maxY + 5
       ) {
         moveStartRef.current = pt
         originalStrokeRef.current = JSON.parse(JSON.stringify(stroke))
+        originalLayersRef.current = layers
+        previewStrokeRef.current = stroke
+
         setIsMoving(true)
         pointerIdRef.current = e.pointerId
 
         try {
           e.currentTarget.setPointerCapture(e.pointerId)
-        } catch {
-          // ignore
-        }
+        } catch {}
 
         return
       }
     }
   }
 
-  // Otherwise, select the drawing under the pointer
+  // If we clicked somewhere else, select another drawing
   const found = findStrokeAtPoint(pt)
   setSelectedStroke(found)
   return
 }
-    // If eyedropper is active, sample immediately and do not draw
-    if (isEyedropperActive) {
-      sampleColorAt(e.clientX, e.clientY)
-      return
-    }
 
     if (e.button !== 0) return // Left click only
 
@@ -449,167 +576,201 @@ if (tool === 'select') {
     }
   }
 
+  
   // Pointer Move
- const handlePointerMove = (e) => {
-    // Move selected drawing
-    if (isMoving && selectedStroke && moveStartRef.current && originalStrokeRef.current) {
-      const pt = getCanvasPoint(e)
+  const handlePointerMove = (e) => {
+    const pt = getCanvasPoint(e)
 
-      const dx = pt.x - moveStartRef.current.x
-      const dy = pt.y - moveStartRef.current.y
+    // Resize selected drawing
+    if (isResizing && selectedStroke && originalStrokeRef.current) {
+      const resized = resizeStroke(
+        originalStrokeRef.current,
+        resizeHandleRef.current,
+        pt
+      )
 
-      const original = originalStrokeRef.current
-      const movedStroke = { ...original }
-
-      if (original.points) {
-        movedStroke.points = original.points.map((point) => ({
-          ...point,
-          x: point.x + dx,
-          y: point.y + dy,
-        }))
-      } else {
-        ;['x', 'x1', 'x2', 'startX', 'cx'].forEach((key) => {
-          if (original[key] !== undefined) movedStroke[key] = original[key] + dx
-        })
-
-        ;['y', 'y1', 'y2', 'startY', 'cy'].forEach((key) => {
-          if (original[key] !== undefined) movedStroke[key] = original[key] + dy
-        })
-      }
+      previewStrokeRef.current = resized
 
       onUpdateStroke(
         selectedStroke.layerId,
         selectedStroke.strokeIndex,
-        movedStroke
+        resized,
+        false
+      )
+
+      return
+    }
+
+    // Move selected drawing
+    if (isMoving && selectedStroke && moveStartRef.current && originalStrokeRef.current) {
+      const dx = pt.x - moveStartRef.current.x
+      const dy = pt.y - moveStartRef.current.y
+
+      const moved = moveStroke(originalStrokeRef.current, dx, dy)
+      previewStrokeRef.current = moved
+
+      onUpdateStroke(
+        selectedStroke.layerId,
+        selectedStroke.strokeIndex,
+        moved,
+        false
       )
 
       return
     }
 
     if (!isDrawingRef.current || !currentStrokeRef.current) return
-    const pt = getCanvasPoint(e)
+
     const stroke = currentStrokeRef.current
 
     if (
-  tool === 'pen' ||
-  tool === 'pencil' ||
-  tool === 'eraser' ||
-  tool === 'highlighter'
-) {
+      tool === 'pen' ||
+      tool === 'pencil' ||
+      tool === 'eraser' ||
+      tool === 'highlighter'
+    ) {
       stroke.points.push(pt)
 
-      // Redraw active layer with updated points to preserve smooth Bézier curve
       const canvas = layerCanvasesRef.current[activeLayerId]
       if (canvas) {
         const ctx = canvas.getContext('2d')
-        // Clear active layer and re-render its committed strokes + active stroke
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+
         const activeLayer = layers.find((l) => l.id === activeLayerId)
-        if (activeLayer && activeLayer.strokes) {
+        if (activeLayer?.strokes) {
           activeLayer.strokes.forEach((s) => renderStroke(ctx, s))
         }
+
         renderStroke(ctx, stroke)
       }
     } else {
-      // Live shape preview on overlay canvas
       const sx = stroke.startX
       const sy = stroke.startY
-      const currX = pt.x
-      const currY = pt.y
 
-      stroke.x = Math.min(sx, currX)
-      stroke.y = Math.min(sy, currY)
-      stroke.width = Math.abs(currX - sx)
-      stroke.height = Math.abs(currY - sy)
+      stroke.x = Math.min(sx, pt.x)
+      stroke.y = Math.min(sy, pt.y)
+      stroke.width = Math.abs(pt.x - sx)
+      stroke.height = Math.abs(pt.y - sy)
 
-      stroke.cx = (sx + currX) / 2
-      stroke.cy = (sy + currY) / 2
-      stroke.rx = Math.abs(currX - sx) / 2
-      stroke.ry = Math.abs(currY - sy) / 2
+      stroke.cx = (sx + pt.x) / 2
+      stroke.cy = (sy + pt.y) / 2
+      stroke.rx = Math.abs(pt.x - sx) / 2
+      stroke.ry = Math.abs(pt.y - sy) / 2
 
       stroke.x1 = sx
       stroke.y1 = sy
-      stroke.x2 = currX
-      stroke.y2 = currY
+      stroke.x2 = pt.x
+      stroke.y2 = pt.y
 
-      const overlay = overlayCanvasRef.current
-      if (overlay) {
-        const ctx = overlay.getContext('2d')
-        clearOverlay()
-        renderStroke(ctx, stroke)
-      }
+      clearOverlay()
+      const ctx = overlayCanvasRef.current?.getContext('2d')
+      if (ctx) renderStroke(ctx, stroke)
     }
   }
 
   // Pointer Up
   const handlePointerUp = (e) => {
-    // Finish moving a selected drawing
-    if (isMoving) {
+    // Finish moving or resizing
+    if (isMoving || isResizing) {
+      if (
+        selectedStroke &&
+        originalLayersRef.current &&
+        previewStrokeRef.current
+      ) {
+        onCommitStrokeUpdate(
+          originalLayersRef.current,
+          selectedStroke.layerId,
+          selectedStroke.strokeIndex,
+          previewStrokeRef.current
+        )
+      }
+
       setIsMoving(false)
+      setIsResizing(false)
+
       moveStartRef.current = null
       originalStrokeRef.current = null
+      originalLayersRef.current = null
+      previewStrokeRef.current = null
+      resizeHandleRef.current = null
 
       try {
         if (pointerIdRef.current !== null) {
           e.currentTarget.releasePointerCapture(pointerIdRef.current)
         }
-      } catch {
-        // ignore
-      }
+      } catch {}
 
       pointerIdRef.current = null
       return
     }
 
     if (!isDrawingRef.current) return
+
     isDrawingRef.current = false
 
     try {
       if (pointerIdRef.current !== null) {
         e.currentTarget.releasePointerCapture(pointerIdRef.current)
       }
-    } catch {
-      // ignore
-    }
+    } catch {}
+
+    pointerIdRef.current = null
 
     const stroke = currentStrokeRef.current
     currentStrokeRef.current = null
     clearOverlay()
 
-    if (stroke) {
-     if (
-  stroke.tool === 'pen' ||
-  stroke.tool === 'pencil' ||
-  stroke.tool === 'eraser' ||
-  stroke.tool === 'highlighter'
-) {
-        if (stroke.points && stroke.points.length > 0) {
-          onAddStroke(stroke)
-        }
-      } else {
-        // Only commit shape if it has non-zero size
-        const isMeaningful =
-          stroke.tool === 'line' || stroke.tool === 'arrow'
-            ? Math.hypot(stroke.x2 - stroke.x1, stroke.y2 - stroke.y1) > 2
-            : stroke.width > 2 || stroke.height > 2
+    if (!stroke) return
 
-        if (isMeaningful) {
-          onAddStroke(stroke)
-        }
-      }
+    if (
+      stroke.tool === 'pen' ||
+      stroke.tool === 'pencil' ||
+      stroke.tool === 'eraser' ||
+      stroke.tool === 'highlighter'
+    ) {
+      if (stroke.points?.length > 0) onAddStroke(stroke)
+    } else {
+      const isMeaningful =
+        stroke.tool === 'line' || stroke.tool === 'arrow'
+          ? Math.hypot(stroke.x2 - stroke.x1, stroke.y2 - stroke.y1) > 2
+          : stroke.width > 2 || stroke.height > 2
+
+      if (isMeaningful) onAddStroke(stroke)
     }
   }
 
-  // Pointer Cancel (cleanly discard in-progress stroke)
+  // Pointer Cancel
   const handlePointerCancel = () => {
+    if (isMoving || isResizing) {
+      if (selectedStroke && originalStrokeRef.current) {
+        onUpdateStroke(
+          selectedStroke.layerId,
+          selectedStroke.strokeIndex,
+          originalStrokeRef.current,
+          false
+        )
+      }
+
+      setIsMoving(false)
+      setIsResizing(false)
+      moveStartRef.current = null
+      originalStrokeRef.current = null
+      originalLayersRef.current = null
+      previewStrokeRef.current = null
+      resizeHandleRef.current = null
+      pointerIdRef.current = null
+      return
+    }
+
     if (!isDrawingRef.current) return
+
     isDrawingRef.current = false
     currentStrokeRef.current = null
     clearOverlay()
-    if (activeLayerId) {
-      redrawLayer(activeLayerId)
-    }
+
+    if (activeLayerId) redrawLayer(activeLayerId)
   }
+
 
   return (
     <main className="canvas-stage">
