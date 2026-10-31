@@ -43,26 +43,59 @@ export default function useLayers(initialLayers) {
     },
     [layers, activeLayerId, history]
   )
+  
   const updateStroke = useCallback(
-    (layerId, strokeIndex, updatedStroke) => {
+    (layerId, strokeIndex, updatedStroke, recordHistory = true) => {
       const updated = layers.map((layer) => {
-        if (layer.id === layerId) {
-          const strokes = [...layer.strokes]
-          strokes[strokeIndex] = updatedStroke
+        if (layer.id !== layerId) return layer
 
-          return {
-            ...layer,
-            strokes,
-          }
+        const strokes = [...layer.strokes]
+        strokes[strokeIndex] = updatedStroke
+
+        return { ...layer, strokes }
+      })
+
+      if (recordHistory) {
+        history.setPresent(updated)
+      } else {
+        history.replacePresent(updated)
+      }
+    },
+    [layers, history]
+  )
+
+  const commitStrokeUpdate = useCallback(
+    (previousLayers, layerId, strokeIndex, updatedStroke) => {
+      const updated = previousLayers.map((layer) => {
+        if (layer.id !== layerId) return layer
+
+        const strokes = [...layer.strokes]
+        strokes[strokeIndex] = updatedStroke
+
+        return { ...layer, strokes }
+      })
+
+      history.commitFrom(previousLayers, updated)
+    },
+    [history]
+  )
+
+  const deleteStroke = useCallback(
+    (layerId, strokeIndex) => {
+      const updated = layers.map((layer) => {
+        if (layer.id !== layerId) return layer
+
+        return {
+          ...layer,
+          strokes: layer.strokes.filter((_, index) => index !== strokeIndex),
         }
-
-        return layer
       })
 
       history.setPresent(updated)
     },
     [layers, history]
   )
+
   const addLayer = useCallback(() => {
     const layerNumber = layers.length + 1
     const newLayer = {
@@ -142,6 +175,8 @@ export default function useLayers(initialLayers) {
     setActiveLayerId,
     addStroke,
     updateStroke,
+    commitStrokeUpdate,
+    deleteStroke,
     addLayer,
     deleteLayer,
     renameLayer,
