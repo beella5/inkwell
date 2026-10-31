@@ -21,7 +21,14 @@ import { exportPng } from './utils/exportPng'
 export default function App() {
   const [toast, setToast] = useState(null)
   const [isMobileLayersOpen, setIsMobileLayersOpen] = useState(false)
+  const [theme, setTheme] = useState(() => {
+  return localStorage.getItem('inkwell-theme') || 'light'
+})
   const tools = useTools()
+  useEffect(() => {
+  document.documentElement.setAttribute('data-theme', theme)
+  localStorage.setItem('inkwell-theme', theme)
+}, [theme])
   useEffect(() => {
   const handleKeyDown = (e) => {
     if (e.key.toLowerCase() !== 'v') return
@@ -72,7 +79,24 @@ export default function App() {
 
   return (
     <div className="inkwell-app">
-      <TopBar saveStatus={persistence.saveStatus} canUndo={layers.canUndo} canRedo={layers.canRedo} onUndo={layers.undo} onRedo={layers.redo} onExport={handleExport} onClear={() => tools.setIsConfirmClearOpen(true)} onOpenShortcuts={() => tools.setIsShortcutsOpen(true)} />
+     <TopBar
+  saveStatus={persistence.saveStatus}
+  canUndo={layers.canUndo}
+  canRedo={layers.canRedo}
+  onUndo={layers.undo}
+  onRedo={layers.redo}
+  onExport={handleExport}
+  onClear={() => tools.setIsConfirmClearOpen(true)}
+  onOpenShortcuts={() => tools.setIsShortcutsOpen(true)}
+  theme={theme}
+  onToggleTheme={() =>
+    setTheme((current) => {
+      if (current === 'light') return 'dark'
+      if (current === 'dark') return 'pink'
+      return 'light'
+    })
+  }
+/>
       <div className="inkwell-body">
         <Toolbar tool={tools.tool} color={tools.color} size={tools.size} onSelectTool={tools.setTool} onToggleShapesPopover={() => tools.setIsShapesPopoverOpen(!tools.isShapesPopoverOpen)} isShapesPopoverOpen={tools.isShapesPopoverOpen} onToggleColorPopover={() => tools.setIsColorPopoverOpen(!tools.isColorPopoverOpen)} isColorPopoverOpen={tools.isColorPopoverOpen} onChangeSize={tools.setSize} />
         <CanvasStage layers={layers.layers} activeLayerId={layers.activeLayerId} tool={tools.tool} color={tools.color} size={tools.size} backgroundPattern={tools.backgroundPattern} isEyedropperActive={tools.isEyedropperActive} onFinishEyedropper={tools.finishEyedropper} onAddStroke={layers.addStroke} 
