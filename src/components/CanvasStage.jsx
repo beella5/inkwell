@@ -223,7 +223,56 @@ export default function CanvasStage({
     }
 
     return null
+}
+    // Draw selection outline around the selected stroke
+  const drawSelectionOutline = () => {
+    if (!selectedStroke) return
+
+    const layer = layers.find((l) => l.id === selectedStroke.layerId)
+    const stroke = layer?.strokes?.[selectedStroke.strokeIndex]
+
+    if (!stroke) return
+
+    let minX, minY, maxX, maxY
+
+    if (stroke.points?.length) {
+      const xs = stroke.points.map((p) => p.x)
+      const ys = stroke.points.map((p) => p.y)
+
+      minX = Math.min(...xs)
+      minY = Math.min(...ys)
+      maxX = Math.max(...xs)
+      maxY = Math.max(...ys)
+    } else {
+      minX = Math.min(stroke.x1 ?? stroke.x ?? 0, stroke.x2 ?? stroke.x ?? 0)
+      minY = Math.min(stroke.y1 ?? stroke.y ?? 0, stroke.y2 ?? stroke.y ?? 0)
+      maxX = Math.max(stroke.x1 ?? stroke.x ?? 0, stroke.x2 ?? stroke.x ?? 0)
+      maxY = Math.max(stroke.y1 ?? stroke.y ?? 0, stroke.y2 ?? stroke.y ?? 0)
+    }
+
+    const overlay = overlayCanvasRef.current
+    if (!overlay) return
+
+    const ctx = overlay.getContext('2d')
+    if (!ctx) return
+
+    ctx.save()
+    ctx.setLineDash([6, 4])
+    ctx.strokeStyle = '#4A90E2'
+    ctx.lineWidth = 1.5
+    ctx.strokeRect(
+      minX - 5,
+      minY - 5,
+      maxX - minX + 10,
+      maxY - minY + 10
+    )
+    ctx.restore()
   }
+  // Update selection outline whenever the selection or layers change
+  useEffect(() => {
+    clearOverlay()
+    drawSelectionOutline()
+  }, [selectedStroke, layers, clearOverlay])
   // Pointer Down
   const handlePointerDown = (e) => {
         // Selection tool
