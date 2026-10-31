@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react'
+import React, { useRef, useEffect, useCallback, useMemo  } from 'react'
 import { renderStroke } from '../canvas/renderStroke'
 import { drawBackground } from '../canvas/drawBackground'
 import {
