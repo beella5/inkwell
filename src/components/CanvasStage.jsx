@@ -184,20 +184,81 @@ const resizeHandleRef = useRef(null)
   )
 
   // Listen for Escape during drawing to cleanly cancel
-  useEffect(() => {
-    function handleKeyDown(e) {
-      if (e.key === 'Escape' && isDrawingRef.current) {
+ useEffect(() => {
+  function handleKeyDown(e) {
+    // Don't trigger shortcuts while typing
+    if (
+      e.target.tagName === 'INPUT' ||
+      e.target.tagName === 'TEXTAREA' ||
+      e.target.isContentEditable
+    ) {
+      return
+    }
+
+    // Escape: cancel drawing, moving, or resizing
+    if (e.key === 'Escape') {
+      if (isDrawingRef.current) {
         isDrawingRef.current = false
         currentStrokeRef.current = null
         clearOverlay()
+
         if (activeLayerId) {
           redrawLayer(activeLayerId)
         }
       }
+
+      if (isMoving || isResizing) {
+        if (selectedStroke && originalStrokeRef.current) {
+          onUpdateStroke(
+            selectedStroke.layerId,
+            selectedStroke.strokeIndex,
+            originalStrokeRef.current,
+            false
+          )
+        }
+
+        setIsMoving(false)
+        setIsResizing(false)
+        moveStartRef.current = null
+        originalStrokeRef.current = null
+        originalLayersRef.current = null
+        previewStrokeRef.current = null
+        resizeHandleRef.current = null
+        pointerIdRef.current = null
+      }
+
+      setSelectedStroke(null)
+      return
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [activeLayerId, redrawLayer, clearOverlay])
+
+    // Delete or Backspace: delete selected drawing
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (selectedStroke) {
+        e.preventDefault()
+        onDeleteStroke(
+          selectedStroke.layerId,
+          selectedStroke.strokeIndex
+        )
+        setSelectedStroke(null)
+      }
+    }
+  }
+
+  window.addEventListener('keydown', handleKeyDown)
+
+  return () => {
+    window.removeEventListener('keydown', handleKeyDown)
+  }
+}, [
+  activeLayerId,
+  redrawLayer,
+  clearOverlay,
+  isMoving,
+  isResizing,
+  selectedStroke,
+  onUpdateStroke,
+  onDeleteStroke,
+])
 
   // Get point coordinates relative to canvas
   const getCanvasPoint = (e) => {
