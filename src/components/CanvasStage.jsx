@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useMemo } from 'react'
+import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react'
 import { renderStroke } from '../canvas/renderStroke'
 import { drawBackground } from '../canvas/drawBackground'
 import { penCursorSvg, ERASER_CURSOR_SVG, toCursorValue } from '../utils/cursors'
@@ -16,6 +16,7 @@ export default function CanvasStage({
   isEyedropperActive,
   onFinishEyedropper,
   onAddStroke,
+  onUpdateStroke,
 }) {
   const containerRef = useRef(null)
   const bgCanvasRef = useRef(null)
