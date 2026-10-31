@@ -9,11 +9,19 @@ export function renderStroke(ctx, stroke) {
   ctx.globalCompositeOperation =
     stroke.tool === 'eraser' ? 'destination-out' : 'source-over'
   ctx.strokeStyle = stroke.color || '#252329'
+  if (stroke.tool === 'highlighter') {
+  ctx.globalAlpha = 0.3
+  ctx.lineWidth = (stroke.size || 2) * 3
+}
   ctx.lineWidth = stroke.size || 2
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
 
-  if (stroke.tool === 'pen' || stroke.tool === 'eraser') {
+if (
+  stroke.tool === 'pen' ||
+  stroke.tool === 'eraser' ||
+  stroke.tool === 'highlighter'
+) {
     const pts = stroke.points
     if (!pts || pts.length === 0) {
       ctx.restore()
