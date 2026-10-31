@@ -37,7 +37,23 @@ export default function CanvasStage({
   }, [tool, color, isEyedropperActive])
 
   // 1. Render Background & Pattern
+    // Set up overlay canvas dimensions
   useEffect(() => {
+    const overlay = overlayCanvasRef.current
+    if (!overlay) return
+
+    const dpr = window.devicePixelRatio || 1
+
+    overlay.width = CANVAS_WIDTH * dpr
+    overlay.height = CANVAS_HEIGHT * dpr
+
+    const ctx = overlay.getContext('2d')
+    if (!ctx) return
+
+    ctx.scale(dpr, dpr)
+  }, [])
+  useEffect(() => {
+    
     const bgCanvas = bgCanvasRef.current
     if (!bgCanvas) return
     const dpr = window.devicePixelRatio || 1
