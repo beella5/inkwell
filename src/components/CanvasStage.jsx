@@ -2,11 +2,6 @@ import React, { useRef, useEffect, useCallback, useMemo } from 'react'
 import { renderStroke } from '../canvas/renderStroke'
 import { drawBackground } from '../canvas/drawBackground'
 import { penCursorSvg, ERASER_CURSOR_SVG, toCursorValue } from '../utils/cursors'
-import {
-  penCursorSvg,
-  ERASER_CURSOR_SVG,
-  toCursorValue,
-} from '../utils/cursors'
 
 export const CANVAS_WIDTH = 1000
 export const CANVAS_HEIGHT = 700
