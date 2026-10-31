@@ -127,10 +127,31 @@ export default function Toolbar({
             <path d="M2 2l7.586 7.586" />
             <circle cx="11" cy="11" r="2" />
           </svg>
+               </button>
+
+        <button
+          className={`tool-btn ${tool === 'pencil' ? 'active' : ''}`}
+          title="Pencil Tool"
+          aria-label="Pencil Tool"
+          onClick={() => onSelectTool('pencil')}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m3 21 3-1 12-12a2.1 2.1 0 0 0-3-3L3 17l-0.5 4z" />
+            <path d="m14 6 4 4" />
+          </svg>
         </button>
 
-<button
-  className={`tool-btn ${tool === 'highlighter' ? 'active' : ''}`}
+        <button
+          className={`tool-btn ${tool === 'highlighter' ? 'active' : ''}`}
   title="Highlighter Tool"
   aria-label="Highlighter Tool"
   onClick={() => onSelectTool('highlighter')}
