@@ -205,6 +205,7 @@ export default function CanvasStage({
 
     if (
   tool === 'pen' ||
+  tool === 'pencil' ||
   tool === 'eraser' ||
   tool === 'highlighter'
 ) {
@@ -255,6 +256,7 @@ export default function CanvasStage({
 
     if (
   tool === 'pen' ||
+  tool === 'pencil' ||
   tool === 'eraser' ||
   tool === 'highlighter'
 ) {
@@ -323,6 +325,7 @@ export default function CanvasStage({
     if (stroke) {
      if (
   stroke.tool === 'pen' ||
+  stroke.tool === 'pencil' ||
   stroke.tool === 'eraser' ||
   stroke.tool === 'highlighter'
 ) {
