@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import TopBar from './components/TopBar'
 import Toolbar from './components/Toolbar'
 import CanvasStage, {
@@ -22,6 +22,26 @@ export default function App() {
   const [toast, setToast] = useState(null)
   const [isMobileLayersOpen, setIsMobileLayersOpen] = useState(false)
   const tools = useTools()
+  useEffect(() => {
+  const handleKeyDown = (e) => {
+    if (e.key.toLowerCase() !== 'v') return
+
+    // Don't activate shortcuts while typing
+    if (
+      e.target.tagName === 'INPUT' ||
+      e.target.tagName === 'TEXTAREA' ||
+      e.target.isContentEditable
+    ) return
+
+    tools.setTool('select')
+  }
+
+  window.addEventListener('keydown', handleKeyDown)
+
+  return () => {
+    window.removeEventListener('keydown', handleKeyDown)
+  }
+}, [tools.setTool])
   const layers = useLayers()
   const persistence = usePersistence(layers.layers, tools.backgroundPattern, (l, bg) => {
     layers.resetLayers(l)
