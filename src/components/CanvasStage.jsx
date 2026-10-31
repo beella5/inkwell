@@ -26,7 +26,7 @@ export default function CanvasStage({
   const isDrawingRef = useRef(false)
   const currentStrokeRef = useRef(null)
   const pointerIdRef = useRef(null)
-
+  const [selectedStroke, setSelectedStroke] = useState(null)
   // Pen / eraser cursor derived from the active tool
   const canvasCursor = useMemo(() => {
     if (isEyedropperActive) return 'crosshair'
@@ -183,9 +183,59 @@ export default function CanvasStage({
       y: Math.round(e.clientY - rect.top),
     }
   }
+  // Find the topmost drawing under the pointer
+  const findStrokeAtPoint = (point) => {
+    const tolerance = 8
 
+    for (let i = layers.length - 1; i >= 0; i--) {
+      const layer = layers[i]
+
+      if (layer.visible === false || !layer.strokes) continue
+
+      for (let j = layer.strokes.length - 1; j >= 0; j--) {
+        const stroke = layer.strokes[j]
+        let minX, minY, maxX, maxY
+
+        if (stroke.points && stroke.points.length > 0) {
+          const xs = stroke.points.map((p) => p.x)
+          const ys = stroke.points.map((p) => p.y)
+
+          minX = Math.min(...xs)
+          minY = Math.min(...ys)
+          maxX = Math.max(...xs)
+          maxY = Math.max(...ys)
+        } else {
+          minX = Math.min(stroke.x1 ?? stroke.x ?? 0, stroke.x2 ?? stroke.x ?? 0)
+          minY = Math.min(stroke.y1 ?? stroke.y ?? 0, stroke.y2 ?? stroke.y ?? 0)
+          maxX = Math.max(stroke.x1 ?? stroke.x ?? 0, stroke.x2 ?? stroke.x ?? 0)
+          maxY = Math.max(stroke.y1 ?? stroke.y ?? 0, stroke.y2 ?? stroke.y ?? 0)
+        }
+
+        if (
+          point.x >= minX - tolerance &&
+          point.x <= maxX + tolerance &&
+          point.y >= minY - tolerance &&
+          point.y <= maxY + tolerance
+        ) {
+          return { layerId: layer.id, strokeIndex: j }
+        }
+      }
+    }
+
+    return null
+  }
   // Pointer Down
   const handlePointerDown = (e) => {
+        // Selection tool
+    if (tool === 'select') {
+      if (e.button !== 0) return
+
+      const pt = getCanvasPoint(e)
+      const found = findStrokeAtPoint(pt)
+
+      setSelectedStroke(found)
+      return
+    }
     // If eyedropper is active, sample immediately and do not draw
     if (isEyedropperActive) {
       sampleColorAt(e.clientX, e.clientY)
