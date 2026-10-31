@@ -203,7 +203,11 @@ export default function CanvasStage({
       // ignore if unsupported
     }
 
-    if (tool === 'pen' || tool === 'eraser') {
+    if (
+  tool === 'pen' ||
+  tool === 'eraser' ||
+  tool === 'highlighter'
+) {
       const stroke = {
         tool,
         color: tool === 'eraser' ? 'rgba(0,0,0,1)' : color,
@@ -249,7 +253,11 @@ export default function CanvasStage({
     const pt = getCanvasPoint(e)
     const stroke = currentStrokeRef.current
 
-    if (stroke.tool === 'pen' || stroke.tool === 'eraser') {
+    if (
+  tool === 'pen' ||
+  tool === 'eraser' ||
+  tool === 'highlighter'
+) {
       stroke.points.push(pt)
 
       // Redraw active layer with updated points to preserve smooth Bézier curve
@@ -313,7 +321,11 @@ export default function CanvasStage({
     clearOverlay()
 
     if (stroke) {
-      if (stroke.tool === 'pen' || stroke.tool === 'eraser') {
+     if (
+  stroke.tool === 'pen' ||
+  stroke.tool === 'eraser' ||
+  stroke.tool === 'highlighter'
+) {
         if (stroke.points && stroke.points.length > 0) {
           onAddStroke(stroke)
         }
