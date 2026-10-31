@@ -1,3 +1,4 @@
+
 /**
  * Draws the canvas base background and optional guidelines (blank, dotted, graph).
  * Used for background stage rendering and export compositing.
@@ -5,14 +6,29 @@
 export function drawBackground(ctx, width, height, pattern = 'blank') {
   ctx.save()
 
-  // Fill solid archival white base
-  ctx.fillStyle = '#FFFFFF'
+  // Get the paper color from the active theme
+  const theme = document.documentElement.getAttribute('data-theme') || 'light'
+
+  const paperColors = {
+    light: '#FFFFFF',
+    dark: '#252229',
+    pink: '#FFFAFD',
+  }
+
+  const paperColor = paperColors[theme] || paperColors.light
+
+  // Fill the paper
+  ctx.fillStyle = paperColor
   ctx.fillRect(0, 0, width, height)
 
   const step = 24
 
   if (pattern === 'dotted') {
-    ctx.fillStyle = 'rgba(37, 35, 41, 0.16)'
+    ctx.fillStyle =
+      theme === 'dark'
+        ? 'rgba(255, 255, 255, 0.20)'
+        : 'rgba(37, 35, 41, 0.16)'
+
     for (let x = step; x < width; x += step) {
       for (let y = step; y < height; y += step) {
         ctx.beginPath()
@@ -21,7 +37,13 @@ export function drawBackground(ctx, width, height, pattern = 'blank') {
       }
     }
   } else if (pattern === 'graph') {
-    ctx.strokeStyle = '#E2DBD2'
+    ctx.strokeStyle =
+      theme === 'dark'
+        ? 'rgba(255, 255, 255, 0.14)'
+        : theme === 'pink'
+          ? '#EBC7D5'
+          : '#E2DBD2'
+
     ctx.lineWidth = 1
     ctx.beginPath()
 
