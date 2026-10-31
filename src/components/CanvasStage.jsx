@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react'
 import { renderStroke } from '../canvas/renderStroke'
 import { drawBackground } from '../canvas/drawBackground'
+import { penCursorSvg, ERASER_CURSOR_SVG, toCursorValue } from '../utils/cursors'
 import {
   penCursorSvg,
   ERASER_CURSOR_SVG,
@@ -349,14 +350,21 @@ export default function CanvasStage({
   return (
     <main className="canvas-stage">
       <div
-        ref={containerRef}
-        className={`canvas-card ${isEyedropperActive ? 'eyedropper-active' : ''}`}
-        style={{
-          width: `${CANVAS_WIDTH}px`,
-          height: `${CANVAS_HEIGHT}px`,
-          touchAction: 'none',
-          cursor: canvasCursor,
-        }}
+  ref={containerRef}
+  className={`canvas-card ${isEyedropperActive ? 'eyedropper-active' : ''}`}
+  style={{
+    width: `${CANVAS_WIDTH}px`,
+    height: `${CANVAS_HEIGHT}px`,
+    touchAction: 'none',
+
+    cursor: isEyedropperActive
+      ? 'crosshair'
+      : tool === 'pen'
+        ? toCursorValue(penCursorSvg(color), 2, 30)
+        : tool === 'eraser'
+          ? toCursorValue(ERASER_CURSOR_SVG, 16, 16)
+          : 'default',
+  }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
