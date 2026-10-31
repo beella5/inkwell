@@ -43,7 +43,26 @@ export default function useLayers(initialLayers) {
     },
     [layers, activeLayerId, history]
   )
+  const updateStroke = useCallback(
+    (layerId, strokeIndex, updatedStroke) => {
+      const updated = layers.map((layer) => {
+        if (layer.id === layerId) {
+          const strokes = [...layer.strokes]
+          strokes[strokeIndex] = updatedStroke
 
+          return {
+            ...layer,
+            strokes,
+          }
+        }
+
+        return layer
+      })
+
+      history.setPresent(updated)
+    },
+    [layers, history]
+  )
   const addLayer = useCallback(() => {
     const layerNumber = layers.length + 1
     const newLayer = {
@@ -122,6 +141,7 @@ export default function useLayers(initialLayers) {
     activeLayerId,
     setActiveLayerId,
     addStroke,
+    updateStroke,
     addLayer,
     deleteLayer,
     renameLayer,
