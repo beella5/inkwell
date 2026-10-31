@@ -276,13 +276,45 @@ export default function CanvasStage({
     ctx.setLineDash([6, 4])
     ctx.strokeStyle = '#4A90E2'
     ctx.lineWidth = 1.5
-    ctx.strokeRect(
-      minX - 5,
-      minY - 5,
-      maxX - minX + 10,
-      maxY - minY + 10
-    )
-    ctx.restore()
+    const left = minX - 5
+const top = minY - 5
+const width = maxX - minX + 10
+const height = maxY - minY + 10
+
+// Dashed selection frame
+ctx.strokeRect(left, top, width, height)
+
+// Four corner handles
+ctx.setLineDash([])
+ctx.fillStyle = '#ffffff'
+ctx.strokeStyle = '#4A90E2'
+ctx.lineWidth = 1.5
+
+const handleSize = 8
+
+const corners = [
+  [left, top],
+  [left + width, top],
+  [left, top + height],
+  [left + width, top + height],
+]
+
+corners.forEach(([x, y]) => {
+  ctx.fillRect(
+    x - handleSize / 2,
+    y - handleSize / 2,
+    handleSize,
+    handleSize
+  )
+  ctx.strokeRect(
+    x - handleSize / 2,
+    y - handleSize / 2,
+    handleSize,
+    handleSize
+  )
+})
+
+ctx.restore()
   }
   // Update selection outline whenever the selection or layers change
   useEffect(() => {
