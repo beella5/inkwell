@@ -197,7 +197,25 @@ export default function Toolbar({
             <path d="m5 11 9 9" />
           </svg>
         </button>
-
+<button
+  className={`tool-btn ${tool === 'select' ? 'active' : ''}`}
+  title="Select Tool (V)"
+  aria-label="Select Tool"
+  onClick={() => onSelectTool('select')}
+>
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M5 3l14 11-7 1-3 6L5 3z" />
+  </svg>
+</button>
         <button
           className={`tool-btn ${isShapeActive || isShapesPopoverOpen ? 'active' : ''}`}
           title="Shapes (R for Rect, C for Circle)"
