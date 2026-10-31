@@ -129,6 +129,28 @@ export default function Toolbar({
           </svg>
         </button>
 
+<button
+  className={`tool-btn ${tool === 'highlighter' ? 'active' : ''}`}
+  title="Highlighter Tool"
+  aria-label="Highlighter Tool"
+  onClick={() => onSelectTool('highlighter')}
+>
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="m4 16 9-9 5 5-9 9H4z" />
+    <path d="m13 7 2-2a2.1 2.1 0 0 1 3 0l3 3a2.1 2.1 0 0 1 0 3l-2 2" />
+    <path d="M4 21h16" />
+  </svg>
+</button>
+
         <button
           className={`tool-btn ${tool === 'eraser' ? 'active' : ''}`}
           title="Eraser Tool (E)"
