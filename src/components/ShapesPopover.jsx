@@ -87,6 +87,46 @@ const SHAPES = [
       </svg>
     ),
   },
+    {
+    id: 'star',
+    label: 'Star',
+    shortcut: '',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <polygon points="12 2 15 9 22 9 16.5 14 18.5 22 12 17 5.5 22 7.5 14 2 9 9 9" />
+      </svg>
+    ),
+  },
+  {
+    id: 'heart',
+    label: 'Heart',
+    shortcut: '',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'diamond',
+    label: 'Diamond',
+    shortcut: '',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <polygon points="12 2 22 12 12 22 2 12" />
+      </svg>
+    ),
+  },
+  {
+    id: 'hexagon',
+    label: 'Hexagon',
+    shortcut: '',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <polygon points="7 2 17 2 22 12 17 22 7 22 2 12" />
+      </svg>
+    ),
+  },
 ]
 
 export default function ShapesPopover({
