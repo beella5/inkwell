@@ -8,14 +8,14 @@ export function renderStroke(ctx, stroke) {
   ctx.save()
   ctx.globalCompositeOperation =
     stroke.tool === 'eraser' ? 'destination-out' : 'source-over'
-  ctx.strokeStyle = stroke.color || '#252329'
-  if (stroke.tool === 'highlighter') {
-  ctx.globalAlpha = 0.3
-  ctx.lineWidth = (stroke.size || 2) * 3
-}
-  ctx.lineWidth = stroke.size || 2
-  ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
+ ctx.strokeStyle = stroke.color || '#252329'
+ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.3 : 1
+ctx.lineWidth =
+  stroke.tool === 'highlighter'
+    ? (stroke.size || 2) * 3
+    : stroke.size || 2
+ctx.lineCap = 'round'
+ctx.lineJoin = 'round'
 
 if (
   stroke.tool === 'pen' ||
