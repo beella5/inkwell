@@ -27,6 +27,9 @@ export default function CanvasStage({
   const currentStrokeRef = useRef(null)
   const pointerIdRef = useRef(null)
   const [selectedStroke, setSelectedStroke] = useState(null)
+  const [isMoving, setIsMoving] = useState(false)
+const moveStartRef = useRef(null)
+const originalStrokeRef = useRef(null)
   // Pen / eraser cursor derived from the active tool
   const canvasCursor = useMemo(() => {
     if (isEyedropperActive) return 'crosshair'
@@ -324,15 +327,60 @@ ctx.restore()
   // Pointer Down
   const handlePointerDown = (e) => {
         // Selection tool
-    if (tool === 'select') {
-      if (e.button !== 0) return
+   // Selection tool
+if (tool === 'select') {
+  if (e.button !== 0) return
 
-      const pt = getCanvasPoint(e)
-      const found = findStrokeAtPoint(pt)
+  const pt = getCanvasPoint(e)
 
-      setSelectedStroke(found)
-      return
+  // If the current selection is clicked, start moving it
+  if (selectedStroke) {
+    const layer = layers.find((l) => l.id === selectedStroke.layerId)
+    const stroke = layer?.strokes?.[selectedStroke.strokeIndex]
+
+    if (stroke) {
+      const points = stroke.points || []
+
+      const xs = points.length
+        ? points.map((p) => p.x)
+        : [stroke.x1 ?? stroke.x ?? 0, stroke.x2 ?? stroke.x ?? 0]
+
+      const ys = points.length
+        ? points.map((p) => p.y)
+        : [stroke.y1 ?? stroke.y ?? 0, stroke.y2 ?? stroke.y ?? 0]
+
+      const minX = Math.min(...xs) - 5
+      const maxX = Math.max(...xs) + 5
+      const minY = Math.min(...ys) - 5
+      const maxY = Math.max(...ys) + 5
+
+      if (
+        pt.x >= minX &&
+        pt.x <= maxX &&
+        pt.y >= minY &&
+        pt.y <= maxY
+      ) {
+        moveStartRef.current = pt
+        originalStrokeRef.current = JSON.parse(JSON.stringify(stroke))
+        setIsMoving(true)
+        pointerIdRef.current = e.pointerId
+
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId)
+        } catch {
+          // ignore
+        }
+
+        return
+      }
     }
+  }
+
+  // Otherwise, select the drawing under the pointer
+  const found = findStrokeAtPoint(pt)
+  setSelectedStroke(found)
+  return
+}
     // If eyedropper is active, sample immediately and do not draw
     if (isEyedropperActive) {
       sampleColorAt(e.clientX, e.clientY)
@@ -402,7 +450,42 @@ ctx.restore()
   }
 
   // Pointer Move
-  const handlePointerMove = (e) => {
+ const handlePointerMove = (e) => {
+    // Move selected drawing
+    if (isMoving && selectedStroke && moveStartRef.current && originalStrokeRef.current) {
+      const pt = getCanvasPoint(e)
+
+      const dx = pt.x - moveStartRef.current.x
+      const dy = pt.y - moveStartRef.current.y
+
+      const original = originalStrokeRef.current
+      const movedStroke = { ...original }
+
+      if (original.points) {
+        movedStroke.points = original.points.map((point) => ({
+          ...point,
+          x: point.x + dx,
+          y: point.y + dy,
+        }))
+      } else {
+        ;['x', 'x1', 'x2', 'startX', 'cx'].forEach((key) => {
+          if (original[key] !== undefined) movedStroke[key] = original[key] + dx
+        })
+
+        ;['y', 'y1', 'y2', 'startY', 'cy'].forEach((key) => {
+          if (original[key] !== undefined) movedStroke[key] = original[key] + dy
+        })
+      }
+
+      onUpdateStroke(
+        selectedStroke.layerId,
+        selectedStroke.strokeIndex,
+        movedStroke
+      )
+
+      return
+    }
+
     if (!isDrawingRef.current || !currentStrokeRef.current) return
     const pt = getCanvasPoint(e)
     const stroke = currentStrokeRef.current
@@ -460,6 +543,24 @@ ctx.restore()
 
   // Pointer Up
   const handlePointerUp = (e) => {
+    // Finish moving a selected drawing
+    if (isMoving) {
+      setIsMoving(false)
+      moveStartRef.current = null
+      originalStrokeRef.current = null
+
+      try {
+        if (pointerIdRef.current !== null) {
+          e.currentTarget.releasePointerCapture(pointerIdRef.current)
+        }
+      } catch {
+        // ignore
+      }
+
+      pointerIdRef.current = null
+      return
+    }
+
     if (!isDrawingRef.current) return
     isDrawingRef.current = false
 
