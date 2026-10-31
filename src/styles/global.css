@@ -363,6 +363,10 @@ button:disabled {
   user-select: none;
   flex-shrink: 0;
 }
+.canvas-card,
+.canvas-card canvas {
+  cursor: inherit;
+}
 
 .canvas-layer {
   position: absolute;
