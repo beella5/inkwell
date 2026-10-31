@@ -1,4 +1,52 @@
-/**
+function drawGraphiteStroke(ctx, points, color, size) {
+  if (!points || points.length === 0) return
+
+  ctx.save()
+  ctx.globalAlpha = 0.55
+  ctx.strokeStyle = color || '#252329'
+  ctx.lineWidth = (size || 2) * 1.2
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  ctx.beginPath()
+  ctx.moveTo(points[0].x, points[0].y)
+
+  for (let i = 1; i < points.length - 1; i++) {
+    const mx = (points[i].x + points[i + 1].x) / 2
+    const my = (points[i].y + points[i + 1].y) / 2
+    ctx.quadraticCurveTo(points[i].x, points[i].y, mx, my)
+  }
+
+  if (points.length > 1) {
+    ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y)
+  }
+
+  ctx.stroke()
+
+  // Fine graphite grain, positioned consistently along the stroke
+  ctx.globalAlpha = 0.12
+  ctx.fillStyle = color || '#252329'
+
+  const step = Math.max(2, Math.floor((size || 2) * 1.5))
+
+  for (let i = 0; i < points.length; i += step) {
+    const point = points[i]
+
+    for (let j = 0; j < 3; j++) {
+      const offsetX = Math.sin(i * 12.9898 + j * 78.233) * size * 0.7
+      const offsetY = Math.cos(i * 4.1414 + j * 39.346) * size * 0.7
+
+      ctx.fillRect(
+        point.x + offsetX,
+        point.y + offsetY,
+        0.8,
+        0.8
+      )
+    }
+  }
+
+  ctx.restore()
+}/**
  * Single source of truth for rendering an individual stroke onto a 2D canvas context.
  * Used for live stroke rendering, overlay shape previews, and full-layer redraws.
  */
@@ -27,7 +75,40 @@ if (
   stroke.tool === 'eraser' ||
   stroke.tool === 'highlighter'
 ) {
-    const pts = stroke.points
+  const pts = stroke.points
+
+  if (!pts || pts.length === 0) {
+    ctx.restore()
+    return
+  }
+
+  if (stroke.tool === 'pencil') {
+    drawGraphiteStroke(ctx, pts, stroke.color, stroke.size)
+  } else if (pts.length === 1) {
+    ctx.beginPath()
+    ctx.arc(
+      pts[0].x,
+      pts[0].y,
+      Math.max(0.5, (stroke.size || 2) / 2),
+      0,
+      Math.PI * 2
+    )
+    ctx.fillStyle =
+      stroke.tool === 'eraser' ? 'rgba(0,0,0,1)' : stroke.color || '#252329'
+    ctx.fill()
+  } else {
+    ctx.beginPath()
+    ctx.moveTo(pts[0].x, pts[0].y)
+
+    for (let i = 1; i < pts.length - 1; i++) {
+      const mx = (pts[i].x + pts[i + 1].x) / 2
+      const my = (pts[i].y + pts[i + 1].y) / 2
+      ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my)
+    }
+
+    ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y)
+    ctx.stroke()
+  }
     if (!pts || pts.length === 0) {
       ctx.restore()
       return
