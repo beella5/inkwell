@@ -17,6 +17,10 @@ export default function Toolbar({
     'line',
     'triangle',
     'arrow',
+    'star',
+  'heart',
+  'diamond',
+  'hexagon',
   ].includes(tool)
 
   const getShapeIcon = () => {
