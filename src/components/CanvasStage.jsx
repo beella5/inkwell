@@ -31,7 +31,7 @@ export default function CanvasStage({
   const pointerIdRef = useRef(null)
   const canvasCursor = useMemo(() => {
     if (isEyedropperActive) return 'crosshair'
-    if (tool === 'pen') return toCursorValue(penCursorSvg(color), 2, 30)
+    if (tool === 'pen') return toCursorValue(penCursorSvg(color), 2, 30, 'cell')
     if (tool === 'eraser') return toCursorValue(ERASER_CURSOR_SVG, 16, 16, 'cell')
     return 'crosshair'
   }, [tool, color, isEyedropperActive])
@@ -403,7 +403,6 @@ export default function CanvasStage({
               width: `${CANVAS_WIDTH}px`,
               height: `${CANVAS_HEIGHT}px`,
               display: layer.visible !== false ? 'block' : 'none',
-              position: 'relative',
             }}
           />
         ))}
