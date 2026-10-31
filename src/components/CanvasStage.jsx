@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useMemo  } from 'react'
+import React, { useRef, useEffect, useCallback, useMemo } from 'react'
 import { renderStroke } from '../canvas/renderStroke'
 import { drawBackground } from '../canvas/drawBackground'
 import {
@@ -6,6 +6,7 @@ import {
   ERASER_CURSOR_SVG,
   toCursorValue,
 } from '../utils/cursors'
+
 export const CANVAS_WIDTH = 1000
 export const CANVAS_HEIGHT = 700
 
@@ -28,10 +29,13 @@ export default function CanvasStage({
   const isDrawingRef = useRef(false)
   const currentStrokeRef = useRef(null)
   const pointerIdRef = useRef(null)
+
+  // Pen / eraser cursor derived from the active tool
   const canvasCursor = useMemo(() => {
     if (isEyedropperActive) return 'crosshair'
     if (tool === 'pen') return toCursorValue(penCursorSvg(color), 2, 30, 'cell')
-    if (tool === 'eraser') return toCursorValue(ERASER_CURSOR_SVG, 16, 16, 'cell')
+    if (tool === 'eraser')
+      return toCursorValue(ERASER_CURSOR_SVG, 16, 16, 'cell')
     return 'crosshair'
   }, [tool, color, isEyedropperActive])
 
@@ -76,7 +80,6 @@ export default function CanvasStage({
       if (!targetLayer) return
       const canvas = layerCanvasesRef.current[layerId]
       if (!canvas) return
-      const dpr = window.devicePixelRatio || 1
       const ctx = canvas.getContext('2d')
       if (!ctx) return
       ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
@@ -93,7 +96,6 @@ export default function CanvasStage({
   const clearOverlay = useCallback(() => {
     const overlay = overlayCanvasRef.current
     if (!overlay) return
-    const dpr = window.devicePixelRatio || 1
     const ctx = overlay.getContext('2d')
     if (!ctx) return
     ctx.save()
@@ -247,10 +249,6 @@ export default function CanvasStage({
 
   // Pointer Move
   const handlePointerMove = (e) => {
-    // ---- brush cursor preview (always runs) ----
-   
-    // ---- end cursor preview ----
-
     if (!isDrawingRef.current || !currentStrokeRef.current) return
     const pt = getCanvasPoint(e)
     const stroke = currentStrokeRef.current
@@ -300,8 +298,6 @@ export default function CanvasStage({
       }
     }
   }
-
-  // Pointer Leave — hide cursor preview unless we're mid-stroke
 
   // Pointer Up
   const handlePointerUp = (e) => {
@@ -359,14 +355,12 @@ export default function CanvasStage({
           width: `${CANVAS_WIDTH}px`,
           height: `${CANVAS_HEIGHT}px`,
           touchAction: 'none',
-           cursor: canvasCursor, 
-          position: 'relative',
+          cursor: canvasCursor,
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
-        onPointerLeave={handlePointerLeave}
       >
         {/* Background Canvas (solid white + blank/dotted/graph) */}
         <canvas
@@ -404,25 +398,6 @@ export default function CanvasStage({
             zIndex: layers.length + 2,
             width: `${CANVAS_WIDTH}px`,
             height: `${CANVAS_HEIGHT}px`,
-          }}
-        />
-
-        {/* Brush cursor preview (DOM element, never part of the drawing) */}
-        <div
-          ref={cursorRef}
-          style={{
-            position: 'absolute',
-            pointerEvents: 'none',
-            display: 'none',
-            zIndex: layers.length + 3,
-            top: 0,
-            left: 0,
-            transform: 'translate(-50%, -50%)',
-            width: '12px',
-            height: '12px',
-            borderRadius: '50%',
-            background: 'rgba(37, 35, 41, 0.5)',
-            border: '1px solid #252329',
           }}
         />
       </div>
