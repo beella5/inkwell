@@ -76,7 +76,8 @@ export default function App() {
       <div className="inkwell-body">
         <Toolbar tool={tools.tool} color={tools.color} size={tools.size} onSelectTool={tools.setTool} onToggleShapesPopover={() => tools.setIsShapesPopoverOpen(!tools.isShapesPopoverOpen)} isShapesPopoverOpen={tools.isShapesPopoverOpen} onToggleColorPopover={() => tools.setIsColorPopoverOpen(!tools.isColorPopoverOpen)} isColorPopoverOpen={tools.isColorPopoverOpen} onChangeSize={tools.setSize} />
         <CanvasStage layers={layers.layers} activeLayerId={layers.activeLayerId} tool={tools.tool} color={tools.color} size={tools.size} backgroundPattern={tools.backgroundPattern} isEyedropperActive={tools.isEyedropperActive} onFinishEyedropper={tools.finishEyedropper} onAddStroke={layers.addStroke} 
-          onUpdateStroke={layers.updateStroke}/>
+          onUpdateStroke={layers.updateStroke} onCommitStrokeUpdate={layers.commitStrokeUpdate}
+onDeleteStroke={layers.deleteStroke}/>
         <LayerPanel layers={layers.layers} activeLayerId={layers.activeLayerId} onSelectLayer={layers.setActiveLayerId} onAddLayer={layers.addLayer} onDeleteLayer={layers.deleteLayer} onRenameLayer={layers.renameLayer} onToggleVisibility={layers.toggleLayerVisibility} onReorderLayers={layers.reorderLayers} backgroundPattern={tools.backgroundPattern} onChangeBackgroundPattern={tools.setBackgroundPattern} isMobileOpen={isMobileLayersOpen} onCloseMobile={() => setIsMobileLayersOpen(false)} />
       </div>
       <ColorPopover isOpen={tools.isColorPopoverOpen} color={tools.color} onSelectColor={tools.setColor} onStartEyedropper={tools.startEyedropper} onClose={() => tools.setIsColorPopoverOpen(false)} />
