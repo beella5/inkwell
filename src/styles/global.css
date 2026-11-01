@@ -899,6 +899,17 @@ button:disabled {
     gap: var(--space-sm);
     z-index: 30;
   }
+  .toolbar-group {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+  .toolbar {
+  max-width: calc(100vw - 16px);
+  overflow-x: auto;
+  justify-content: flex-start;
+}
   .toolbar-divider {
     width: 1px;
     height: 24px;
