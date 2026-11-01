@@ -263,16 +263,21 @@ const resizeHandleRef = useRef(null)
 ])
 
   // Get point coordinates relative to canvas
-  const getCanvasPoint = (e) => {
-    const card = containerRef.current
-    if (!card) return { x: 0, y: 0 }
-    const rect = card.getBoundingClientRect()
-    return {
-      x: Math.round(e.clientX - rect.left),
-      y: Math.round(e.clientY - rect.top),
-    }
-  }
+ const getCanvasPoint = (e) => {
+  const card = containerRef.current
+  if (!card) return { x: 0, y: 0 }
 
+  const rect = card.getBoundingClientRect()
+
+  const scaleX = CANVAS_WIDTH / rect.width
+  const scaleY = CANVAS_HEIGHT / rect.height
+
+  return {
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top) * scaleY,
+    pressure: e.pointerType === 'pen' ? e.pressure : 0.5,
+  }
+}
   // Get the bounding box of a drawing
   const getStrokeBounds = (stroke) => {
     let xs = []
