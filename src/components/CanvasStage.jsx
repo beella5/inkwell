@@ -1,4 +1,4 @@
-drawBackground(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, backgroundPattern, theme)import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react'
+import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react'
 import { renderStroke } from '../canvas/renderStroke'
 import { drawBackground } from '../canvas/drawBackground'
 import { penCursorSvg, ERASER_CURSOR_SVG, toCursorValue } from '../utils/cursors'
@@ -146,7 +146,7 @@ const resizeHandleRef = useRef(null)
       octx.scale(dpr, dpr)
 
       // Draw background
-      drawBackground(octx, CANVAS_WIDTH, CANVAS_HEIGHT, backgroundPattern)
+      drawBackground(octx, CANVAS_WIDTH, CANVAS_HEIGHT, backgroundPattern, theme)
 
       // Draw visible layers in order
       layers
