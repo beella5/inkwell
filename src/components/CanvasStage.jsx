@@ -514,6 +514,9 @@ const resizeStroke = (original, handle, point) => {
 }
 
   const handlePointerDown = (e) => {
+    if (e.pointerType === 'touch' || e.pointerType === 'pen') {
+  e.preventDefault()
+}
      if (isEyedropperActive) {
       sampleColorAt(e.clientX, e.clientY)
       return
