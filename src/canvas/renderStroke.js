@@ -84,6 +84,38 @@ if (
 
   if (stroke.tool === 'pencil') {
     drawGraphiteStroke(ctx, pts, stroke.color, stroke.size)
+  } else if (stroke.tool === 'pen') {
+    // Pressure-sensitive pen (mainly for compatible styluses)
+    if (pts.length === 1) {
+      const pressure = pts[0].pressure ?? 0.5
+      ctx.beginPath()
+      ctx.arc(
+        pts[0].x,
+        pts[0].y,
+        Math.max(0.5, (stroke.size || 2) * (0.35 + pressure) / 2),
+        0,
+        Math.PI * 2
+      )
+      ctx.fill()
+    } else {
+      for (let i = 1; i < pts.length; i++) {
+        const previous = pts[i - 1]
+        const current = pts[i]
+
+        const pressure =
+          ((previous.pressure ?? 0.5) + (current.pressure ?? 0.5)) / 2
+
+        ctx.lineWidth = Math.max(
+          0.5,
+          (stroke.size || 2) * (0.35 + pressure)
+        )
+
+        ctx.beginPath()
+        ctx.moveTo(previous.x, previous.y)
+        ctx.lineTo(current.x, current.y)
+        ctx.stroke()
+      }
+    }
   } else if (pts.length === 1) {
     ctx.beginPath()
     ctx.arc(
@@ -93,8 +125,6 @@ if (
       0,
       Math.PI * 2
     )
-    ctx.fillStyle =
-      stroke.tool === 'eraser' ? 'rgba(0,0,0,1)' : stroke.color || '#252329'
     ctx.fill()
   } else {
     ctx.beginPath()
@@ -109,34 +139,6 @@ if (
     ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y)
     ctx.stroke()
   }
-    if (!pts || pts.length === 0) {
-      ctx.restore()
-      return
-    }
-
-    if (pts.length === 1) {
-      ctx.beginPath()
-      ctx.arc(
-        pts[0].x,
-        pts[0].y,
-        Math.max(0.5, (stroke.size || 2) / 2),
-        0,
-        Math.PI * 2
-      )
-      ctx.fillStyle =
-        stroke.tool === 'eraser' ? 'rgba(0,0,0,1)' : stroke.color || '#252329'
-      ctx.fill()
-    } else {
-      ctx.beginPath()
-      ctx.moveTo(pts[0].x, pts[0].y)
-      for (let i = 1; i < pts.length - 1; i++) {
-        const mx = (pts[i].x + pts[i + 1].x) / 2
-        const my = (pts[i].y + pts[i + 1].y) / 2
-        ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my)
-      }
-      ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y)
-      ctx.stroke()
-    }
   } else if (stroke.tool === 'rectangle') {
     ctx.strokeRect(stroke.x, stroke.y, stroke.width, stroke.height)
   } else if (stroke.tool === 'circle') {
