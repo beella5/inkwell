@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react'
+drawBackground(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, backgroundPattern, theme)import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react'
 import { renderStroke } from '../canvas/renderStroke'
 import { drawBackground } from '../canvas/drawBackground'
 import { penCursorSvg, ERASER_CURSOR_SVG, toCursorValue } from '../utils/cursors'
@@ -73,7 +73,7 @@ const resizeHandleRef = useRef(null)
     const ctx = bgCanvas.getContext('2d')
     if (!ctx) return
     ctx.scale(dpr, dpr)
-    drawBackground(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, backgroundPattern)
+    drawBackground(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, backgroundPattern, theme)
   }, [backgroundPattern, theme])
 
   // 2. Redraw each layer whenever strokes or visibility changes
@@ -181,7 +181,8 @@ const resizeHandleRef = useRef(null)
           .join('')
       onFinishEyedropper(hex)
     },
-    [layers, backgroundPattern, onFinishEyedropper]
+    [layers, backgroundPattern, theme, onFinishEyedropper]
+  
   )
 
   // Listen for Escape during drawing to cleanly cancel
