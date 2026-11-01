@@ -910,6 +910,16 @@ button:disabled {
   .canvas-stage {
     padding: var(--space-sm);
   }
+    .canvas-card {
+    width: min(100%, 1000px) !important;
+    height: auto !important;
+    aspect-ratio: 10 / 7;
+  }
+
+  .canvas-card canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
   .layer-panel {
     position: fixed;
     bottom: 0;
