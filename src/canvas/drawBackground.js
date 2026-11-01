@@ -1,13 +1,9 @@
 
 /**
- * Draws the canvas base background and optional guidelines (blank, dotted, graph).
- * Used for background stage rendering and export compositing.
+ * Draws the canvas base background and optional guidelines.
  */
-export function drawBackground(ctx, width, height, pattern = 'blank') {
+export function drawBackground(ctx, width, height, pattern = 'blank', theme = 'light') {
   ctx.save()
-
-  // Get the paper color from the active theme
-  const theme = document.documentElement.getAttribute('data-theme') || 'light'
 
   const paperColors = {
     light: '#FFFFFF',
@@ -15,10 +11,7 @@ export function drawBackground(ctx, width, height, pattern = 'blank') {
     pink: '#FFFAFD',
   }
 
-  const paperColor = paperColors[theme] || paperColors.light
-
-  // Fill the paper
-  ctx.fillStyle = paperColor
+  ctx.fillStyle = paperColors[theme] || paperColors.light
   ctx.fillRect(0, 0, width, height)
 
   const step = 24
