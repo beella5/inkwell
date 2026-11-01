@@ -17,7 +17,7 @@ The application is built with React and Vite. Drawings are saved locally in the 
 
 ## Screenshot
 
-![Inkwell drawing studio interface](docs/inkwell-screenshot.jpg)
+![Inkwell drawing studio interface](inkwell-screenshot.jpg)
 
 ---
 
