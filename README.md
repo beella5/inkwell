@@ -2,120 +2,107 @@
 
 > An archival, fine-art-inspired browser drawing studio built for deliberate craftsmanship and fluid creative flow.
 
-Live demo: (add after deploy)
-
----
-
-## Screenshot
-
-![Inkwell Studio Interface Placeholder](docs/screenshot-placeholder.svg)
+**Live demo:** [Open Inkwell](https://inkwelldrawingstudio.netlify.app/)  
+**Source code:** [GitHub repository](https://github.com/beella5/inkwell)
 
 ---
 
 ## Project Overview
 
-**Inkwell** translates the tactile warmth of a physical fine art atelier into a digital workspace. Eschewing the synthetic blurs, harsh neon accents, and cluttered interfaces typical of modern digital creation tools, Inkwell centers on organic workshop tones: warm studio ivory, flaxen beige tool surfaces, archival carbon ink, and rich burgundy lacquer.
+Inkwell is a browser-based drawing studio inspired by the tactile warmth of a traditional fine-art workspace. It provides a focused canvas for sketching, creating geometric shapes, organizing artwork into layers, and exporting finished drawings.
 
-Every stroke is captured as a resolution-independent vector stroke command, supporting unlimited non-destructive undo/redo, multi-layer isolation, background paper patterns, and pixel-accurate composited exports.
+The application is built with React and Vite. Drawings are saved locally in the browser, so no account or backend database is required.
+
+---
+
+## Screenshot
+
+![Inkwell drawing studio interface](docs/inkwell-screenshot.jpg)
 
 ---
 
 ## Features
 
-### Core Drawing & Tools
-- **Smooth Freehand Pen**: Uses quadratic Bézier interpolation across pointer sample points for natural, fluid curves without polygonal jaggedness.
-- **Layer-Scoped Eraser**: Operates using `destination-out` blending isolated strictly to the active layer, preserving background guidelines and underlying layers.
-- **Vector Geometric Shapes**: Live click-drag overlays for Rectangles, Circles, Straight Lines, Triangles, and Directional Arrows. Live preview renders on a dedicated transient canvas and commits to state on pointer release (or cleanly cancels on `Escape`).
-- **Pointer Events Pipeline**: Native `pointerdown`, `pointermove`, `pointerup`, and `pointercancel` with pointer capture support across mouse, stylus/pen pressure, and touch surfaces (`touch-action: none`).
-- **Color Selection**:
-  - 16 atelier-curated palette swatches in a floating popover.
-  - Native color picker for arbitrary hex/RGB colors.
-  - Composited canvas eyedropper sampling exact pixel values at device pixel ratio (`I`).
-- **Brush Sizing**: 1px to 40px continuous slider with live numeric readout and preview dot.
+### Drawing tools
+- Freehand pen, pencil, highlighter, and eraser.
+- Geometric shapes, including rectangles, circles, lines, triangles, and arrows.
+- Eyedropper for sampling canvas colors.
+- Curated color palette and custom color picker.
+- Adjustable brush size.
 
-### Multi-Layer Architecture
-- **Independent Canvas Stacks**: Each layer is rendered onto its own dedicated, transparent HTML5 canvas element stacked via CSS z-index.
-- **Layer Operations**: Add new layers on top ("Layer N"), delete layers (disabled on the sole remaining layer), double-click to rename with inline inputs, toggle visibility, and drag-and-drop reordering.
-- **Visual Distinction**: Active layer is accentuated with a solid burgundy left boundary and warm ivory surface highlight.
-- **Real-Time Mini Thumbnails**: Live canvas-rendered thumbnails reflecting the exact content of each layer as strokes are drawn or reverted.
+### Editing and organization
+- Undo and redo.
+- Multiple layers with add, delete, rename, visibility, and reorder controls.
+- Selection tools to move, resize, and delete drawing elements.
+- Blank, dotted, and graph canvas backgrounds.
+- Light, dark, and pink themes.
 
-### Undo / Redo & State Architecture
-- **Command Pattern History**: Undo stack and redo stack tracking discrete stroke actions and layer modifications.
-- **Stroke-Object Storage**: History records lightweight vector stroke structures rather than heavyweight raster image bitmaps.
-- **Global Coordination**: Actions revert across all layers while maintaining active layer references.
-- **Reactive UI States**: Undo and Redo buttons automatically disable when their respective command stacks are empty.
+### Saving and exporting
+- Automatic saving to browser `localStorage`.
+- Restore the saved drawing when the application is reopened in the same browser.
+- PNG export that includes the selected background and visible layers.
+- Save-status feedback in the interface.
 
-### Canvas Backgrounds
-- **Archival Paper Modes**: Blank archival white, Dotted grid (24px spacing), and Graph grid (24px spacing).
-- **Independent State**: Background guidelines exist outside the stroke undo history and composite cleanly into PNG exports.
-
-### Persistence & Autosave
-- **Local Storage ("inkwell:v1")**: Debounced auto-save (500ms) with JSON serialization. Never triggers during in-progress pointer movements.
-- **Honest Save Status**: Real-time indicator displaying "All changes saved", "Saving…", "Couldn't save", or "Not saved".
-- **Resilient Recovery**: On boot, parses stored state and validates the version schema. Corrupt or unversioned data safely fails over to a fresh canvas without crashing.
-- **Safe Reset**: "Clear" command guarded by an intentional confirmation modal that purges local storage and re-initializes Layer 1.
-
-### High-Fidelity PNG Export
-- **Bottom-to-Top Compositing**: Merges background paper guidelines and all visible layers in ascending order onto an offscreen canvas.
-- **Layer Isolation**: Respects `destination-out` masks per layer without punching holes into underlying paper or artwork.
-- **Standardized Naming**: Automatically downloads as `inkwell-YYYY-MM-DD-HHmm.png` and displays a confirmation toast.
+### Input and accessibility
+- Mouse, touch, and stylus input through pointer events.
+- Keyboard shortcuts for common drawing and editing actions.
+- Shortcuts are suppressed while typing in text fields.
 
 ---
 
-## Keyboard Shortcuts
+## Technology Stack
 
-| Shortcut | Action | Description |
-| :--- | :--- | :--- |
-| `Ctrl+Z` / `⌘Z` | **Undo** | Reverts the most recent stroke or layer operation |
-| `Ctrl+Shift+Z` / `Ctrl+Y` / `⌘⇧Z` | **Redo** | Re-applies the previously undone action |
-| `B` | **Pen** | Selects the smooth freehand pen tool |
-| `E` | **Eraser** | Selects the layer-scoped eraser tool |
-| `R` | **Rectangle** | Selects the rectangle shape tool |
-| `C` | **Circle** | Selects the circle/ellipse shape tool |
-| `I` | **Eyedropper** | Activates the composited canvas color sampler |
-| `Ctrl+E` / `⌘E` | **Export PNG** | Flattens visible layers and downloads PNG |
-| `Delete` / `Backspace` | **Clear Canvas** | Opens the clear canvas confirmation modal |
-| `Escape` | **Dismiss / Cancel** | Discards in-progress strokes and closes open modals/popovers |
-| `?` | **Shortcuts** | Opens the keyboard shortcuts cheatsheet |
-
-> *Note: Single-key shortcuts are automatically suppressed whenever focus is inside a text input or editable element.*
+- React 18
+- Vite 5
+- JavaScript
+- HTML Canvas API
+- CSS
+- Vitest and jsdom for automated tests
 
 ---
 
-## Setup & Development
+## Getting Started
 
 ### Prerequisites
-- Node.js (v18+ recommended)
-- npm or pnpm
+- Node.js 18 or later
+- npm
 
 ### Installation
-```bash
-# Clone or navigate to the repository
-cd inkwell
 
-# Install dependencies
+Clone the repository and install its dependencies:
+
+```bash
+git clone https://github.com/beella5/inkwell.git
+cd inkwell
 npm install
 ```
 
-### Development Server
+### Run locally
+
 ```bash
 npm run dev
 ```
-Starts the Vite local development server (typically at `http://localhost:5173`).
 
-### Running Tests
+Vite will print the local development URL in the terminal (usually `http://localhost:5173`).
+
+### Run the tests
+
 ```bash
 npm test
 ```
-Executes the Vitest unit and integration test suite in jsdom.
 
-### Production Build
+The current automated tests cover history behavior, serialization, and keyboard shortcuts.
+
+### Create a production build
+
 ```bash
 npm run build
 ```
-Compiles and bundles production-ready assets into the `dist/` directory.
 
-### Code Style & Linting
+The production files are generated in the `dist/` directory.
+
+### Lint and format
+
 ```bash
 npm run lint
 npm run format
@@ -125,33 +112,26 @@ npm run format
 
 ## Deployment
 
-Inkwell is configured for static hosting platforms like **Vercel**, **Netlify**, or **GitHub Pages**. 
+The live version is hosted on **Netlify**.
 
-A [`vercel.json`](./vercel.json) rewrite rule is pre-configured to handle SPA routing:
-```json
-{
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-}
-```
+For a new Netlify deployment, connect the GitHub repository and use:
 
-To deploy using the Vercel CLI:
-```bash
-npm run build
-vercel deploy --prod
-```
+- **Build command:** `npm run build`
+- **Publish directory:** `dist`
+
+The project is a Vite single-page application. Configure the hosting platform to serve `index.html` for application routes if client-side routing is used.
 
 ---
 
-## Known Limitations & Future Improvements
+## Known Limitations and Possible Future Improvements
 
-1. **Storage Limits**: `localStorage` has a typical quota of ~5MB. In a future release, migrating to IndexedDB with chunked compression will allow complex multi-thousand stroke documents.
-2. **Layer Blend Modes & Opacity**: Adding blend mode controls (`multiply`, `screen`, `overlay`) and individual layer alpha sliders.
-3. **Selection & Transform**: Implementing lasso/marquee selection to translate, scale, and rotate existing stroke objects.
-4. **Export Formats**: Adding vector SVG export by traversing stroke objects directly to `<path>`, `<rect>`, and `<circle>` tags.
-5. **Zoom & Pan Stage**: Adding a virtual viewport camera for pinch-to-zoom and canvas panning on touch devices.
+- **Browser-local storage:** Drawings are stored in the current browser using `localStorage`. They are not automatically synchronized between devices or browsers. IndexedDB or optional cloud synchronization could support larger projects.
+- **Layer controls:** Additional controls such as per-layer opacity and blend modes could provide more advanced compositing options.
+- **Canvas navigation:** Zoom and pan controls, including pinch-to-zoom on touch screens, could improve work on larger drawings.
+- **Additional export formats:** SVG export could complement the existing PNG export.
 
 ---
 
-## Architectural & Design Decisions
+## Project Decisions and AI Disclosure
 
-Detailed architectural choices, data model tradeoffs, and AI pairing disclosures are documented in [DECISIONS.md](./DECISIONS.md).
+See [DECISIONS.md](./DECISIONS.md) for the architectural decisions, trade-offs, AI tools used during development, and an example of a change made to AI-generated output.
