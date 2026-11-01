@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
-  <rect width="800" height="500" fill="#F7F4EF"/>
-  <rect x="80" y="40" width="640" height="420" rx="8" fill="#FFFFFF" stroke="#DDD6CE" stroke-width="2"/>
-  <text x="400" y="240" font-family="'Playfair Display', Georgia, serif" font-size="28" fill="#722F43" text-anchor="middle" font-weight="bold">Inkwell — Drawing Studio</text>
-  <text x="400" y="280" font-family="'Plus Jakarta Sans', sans-serif" font-size="14" fill="#6E6875" text-anchor="middle">Studio Workspace Preview</text>
-</svg>
