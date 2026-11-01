@@ -13,6 +13,7 @@ export default function CanvasStage({
   color,
   size,
   backgroundPattern,
+  theme,
   isEyedropperActive,
   onFinishEyedropper,
   onAddStroke,
@@ -73,7 +74,7 @@ const resizeHandleRef = useRef(null)
     if (!ctx) return
     ctx.scale(dpr, dpr)
     drawBackground(ctx, CANVAS_WIDTH, CANVAS_HEIGHT, backgroundPattern)
-  }, [backgroundPattern])
+  }, [backgroundPattern, theme])
 
   // 2. Redraw each layer whenever strokes or visibility changes
   useEffect(() => {
